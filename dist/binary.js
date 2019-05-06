@@ -46,6 +46,7 @@ function readData(blob, fDef, startIndex) {
         }
         return new Buffer(_temp).toString('utf-8');
     }
+
     return blob[startIndex];
 }
 
@@ -201,31 +202,33 @@ function readRecord(blob, messageTypes, developerFields, startIndex, options, st
 
             mTypeDef.fieldDefs.push(fDef);
         }
+        //bryton fit doesn't do this?
+        if (developerFields.length > 0) {
+            for (var _i2 = 0; _i2 < numberOfDeveloperDataFields; _i2++) {
+                var _fDefIndex = startIndex + 6 + numberOfFields * 3 + 1 + _i2 * 3;
 
-        for (var _i2 = 0; _i2 < numberOfDeveloperDataFields; _i2++) {
-            var _fDefIndex = startIndex + 6 + numberOfFields * 3 + 1 + _i2 * 3;
+                var fieldNum = blob[_fDefIndex];
+                var size = blob[_fDefIndex + 1];
+                var devDataIndex = blob[_fDefIndex + 2];
 
-            var fieldNum = blob[_fDefIndex];
-            var size = blob[_fDefIndex + 1];
-            var devDataIndex = blob[_fDefIndex + 2];
+                var devDef = developerFields[devDataIndex][fieldNum];
 
-            var devDef = developerFields[devDataIndex][fieldNum];
+                var _baseType = devDef.fit_base_type_id;
 
-            var _baseType = devDef.fit_base_type_id;
+                var _fDef = {
+                    type: _fit.FIT.types.fit_base_type[_baseType],
+                    fDefNo: fieldNum,
+                    size: size,
+                    endianAbility: (_baseType & 128) === 128,
+                    littleEndian: lEnd,
+                    baseTypeNo: _baseType & 15,
+                    name: devDef.field_name,
+                    dataType: (0, _messages.getFitMessageBaseType)(_baseType & 15),
+                    isDeveloperField: true
+                };
 
-            var _fDef = {
-                type: _fit.FIT.types.fit_base_type[_baseType],
-                fDefNo: fieldNum,
-                size: size,
-                endianAbility: (_baseType & 128) === 128,
-                littleEndian: lEnd,
-                baseTypeNo: _baseType & 15,
-                name: devDef.field_name,
-                dataType: (0, _messages.getFitMessageBaseType)(_baseType & 15),
-                isDeveloperField: true
-            };
-
-            mTypeDef.fieldDefs.push(_fDef);
+                mTypeDef.fieldDefs.push(_fDef);
+            }
         }
 
         messageTypes[localMessageType] = mTypeDef;
@@ -241,6 +244,8 @@ function readRecord(blob, messageTypes, developerFields, startIndex, options, st
 
     var messageType = messageTypes[localMessageType] || messageTypes[0];
 
+    // TODO: handle compressed header ((recordHeader & 128) == 128)
+
     // uncompressed header
     var messageSize = 0;
     var readDataFromIndex = startIndex + 1;
@@ -252,7 +257,6 @@ function readRecord(blob, messageTypes, developerFields, startIndex, options, st
         var data = readData(blob, _fDef2, readDataFromIndex);
 
         if (!isInvalidValue(data, _fDef2.type)) {
-
             if (_fDef2.isDeveloperField) {
                 // Skip format of data if developer field
                 fields[_fDef2.name] = data;

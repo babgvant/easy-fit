@@ -167,31 +167,33 @@ export function readRecord(blob, messageTypes, developerFields, startIndex, opti
 
             mTypeDef.fieldDefs.push(fDef);
         }
+        //bryton fit doesn't do this?
+        if(developerFields.length > 0){
+            for (let i = 0; i < numberOfDeveloperDataFields; i++) {
+                const fDefIndex = startIndex + 6 + (numberOfFields * 3) + 1 + (i * 3);
 
-        for (let i = 0; i < numberOfDeveloperDataFields; i++) {
-            const fDefIndex = startIndex + 6 + (numberOfFields * 3) + 1 + (i * 3);
+                const fieldNum = blob[fDefIndex];
+                const size = blob[fDefIndex + 1];
+                const devDataIndex = blob[fDefIndex + 2];
 
-            const fieldNum = blob[fDefIndex];
-            const size = blob[fDefIndex + 1];
-            const devDataIndex = blob[fDefIndex + 2];
+                const devDef = developerFields[devDataIndex][fieldNum];
 
-            const devDef = developerFields[devDataIndex][fieldNum];
+                const baseType = devDef.fit_base_type_id;
 
-            const baseType = devDef.fit_base_type_id;
+                const fDef = {
+                    type: FIT.types.fit_base_type[baseType],
+                    fDefNo: fieldNum,
+                    size: size,
+                    endianAbility: (baseType & 128) === 128,
+                    littleEndian: lEnd,
+                    baseTypeNo: (baseType & 15),
+                    name: devDef.field_name,
+                    dataType: getFitMessageBaseType(baseType & 15),
+                    isDeveloperField: true,
+                };
 
-            const fDef = {
-                type: FIT.types.fit_base_type[baseType],
-                fDefNo: fieldNum,
-                size: size,
-                endianAbility: (baseType & 128) === 128,
-                littleEndian: lEnd,
-                baseTypeNo: (baseType & 15),
-                name: devDef.field_name,
-                dataType: getFitMessageBaseType(baseType & 15),
-                isDeveloperField: true,
-            };
-
-            mTypeDef.fieldDefs.push(fDef);
+                mTypeDef.fieldDefs.push(fDef);
+            }
         }
 
         messageTypes[localMessageType] = mTypeDef;
