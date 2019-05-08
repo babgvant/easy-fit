@@ -65,7 +65,7 @@ function formatByType(data, type, scale, offset) {
         case 'left_right_balance':
             return { 'right': data & 127, 'left': 100 - (data & 127) };
         case 'left_right_balance_100':
-            return { 'right': data & 16383, 'left': 100 - (data & 16383) };
+            return { 'right': (data & 16383) / 100, 'left': 100 - (data & 16383) / 100 };
         case 'sint32':
         case 'sint16':
             return data * _fit.FIT.scConst;
@@ -96,6 +96,7 @@ function isInvalidValue(data, type) {
         case 'sint16':
             retVal = data === 0x7FFF;
             break;
+        case 'left_right_balance_100':
         case 'uint16':
             retVal = data === 0xFFFF;
             break;
