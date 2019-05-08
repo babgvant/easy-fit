@@ -68,6 +68,9 @@ var EasyFit = function () {
           }
         }
       }
+
+      var protocolVersion = blob[1];
+      var profileVersion = blob[2] + (blob[3] << 8);
       var dataLength = blob[4] + (blob[5] << 8) + (blob[6] << 16) + (blob[7] << 24);
       var crcStart = dataLength + headerLength;
       var crcFile = blob[crcStart] + (blob[crcStart + 1] << 8);
@@ -98,6 +101,9 @@ var EasyFit = function () {
       var isCascadeNeeded = isModeCascade || this.options.mode === 'both';
 
       var startDate = void 0;
+
+      fitObj.protocolVersion = protocolVersion;
+      fitObj.profileVersion = profileVersion;
 
       while (loopIndex < crcStart) {
         var _readRecord = (0, _binary.readRecord)(blob, messageTypes, developerFields, loopIndex, this.options, startDate),

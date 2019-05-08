@@ -22,6 +22,12 @@ function addEndian(littleEndian, bytes) {
     return result;
 }
 
+var timestamp = 0;
+var lastTimeOffset = 0;
+var CompressedTimeMask = 31;
+var CompressedLocalMesgNumMask = 0x60;
+var CompressedHeaderMask = 0x80;
+
 function readData(blob, fDef, startIndex) {
     if (fDef.endianAbility === true) {
         var temp = [];
@@ -53,6 +59,8 @@ function readData(blob, fDef, startIndex) {
 function formatByType(data, type, scale, offset) {
     switch (type) {
         case 'date_time':
+            timestamp = data;
+            lastTimeOffset = timestamp & CompressedTimeMask;
             return new Date(data * 1000 + 631065600000);
         case 'sint32':
         case 'sint16':
@@ -69,44 +77,63 @@ function formatByType(data, type, scale, offset) {
 }
 
 function isInvalidValue(data, type) {
+    var retVal = false;
+
     switch (type) {
         case 'enum':
-            return data === 0xFF;
+            retVal = data === 0xFF;
+            break;
         case 'sint8':
-            return data === 0x7F;
+            retVal = data === 0x7F;
+            break;
         case 'uint8':
-            return data === 0xFF;
+            retVal = data === 0xFF;
+            break;
         case 'sint16':
-            return data === 0x7FFF;
-        case 'unit16':
-            return data === 0xFFFF;
+            retVal = data === 0x7FFF;
+            break;
+        case 'uint16':
+            retVal = data === 0xFFFF;
+            break;
         case 'sint32':
-            return data === 0x7FFFFFFF;
+            retVal = data === 0x7FFFFFFF;
+            break;
         case 'uint32':
-            return data === 0xFFFFFFFF;
+            retVal = data === 0xFFFFFFFF;
+            break;
         case 'string':
-            return data === 0x00;
+            retVal = data === 0x00;
+            break;
         case 'float32':
-            return data === 0xFFFFFFFF;
+            retVal = data === 0xFFFFFFFF;
+            break;
         case 'float64':
-            return data === 0xFFFFFFFFFFFFFFFF;
+            retVal = data === 0xFFFFFFFFFFFFFFFF;
+            break;
         case 'uint8z':
-            return data === 0x00;
+            retVal = data === 0x00;
+            break;
         case 'uint16z':
-            return data === 0x0000;
+            retVal = data === 0x0000;
+            break;
         case 'uint32z':
-            return data === 0x000000;
+            retVal = data === 0x000000;
+            break;
         case 'byte':
-            return data === 0xFF;
+            retVal = data === 0xFF;
+            break;
         case 'sint64':
-            return data === 0x7FFFFFFFFFFFFFFF;
+            retVal = data === 0x7FFFFFFFFFFFFFFF;
+            break;
         case 'uint64':
-            return data === 0xFFFFFFFFFFFFFFFF;
+            retVal = data === 0xFFFFFFFFFFFFFFFF;
+            break;
         case 'uint64z':
-            return data === 0x0000000000000000;
-        default:
-            return false;
+            retVal = data === 0x0000000000000000;
+            break;
     }
+
+    return retVal;
 }
 
 function convertTo(data, unitsList, speedUnit) {
@@ -163,7 +190,15 @@ function readRecord(blob, messageTypes, developerFields, startIndex, options, st
     var recordHeader = blob[startIndex];
     var localMessageType = recordHeader & 15;
 
-    if ((recordHeader & 64) === 64) {
+    if ((recordHeader & CompressedHeaderMask) === CompressedHeaderMask) {
+        //compressed timestamp
+
+        var timeoffset = recordHeader & CompressedTimeMask;
+        timestamp += timeoffset - lastTimeOffset & CompressedTimeMask;
+        lastTimeOffset = timeoffset;
+
+        localMessageType = (recordHeader & CompressedLocalMesgNumMask) >> 5;
+    } else if ((recordHeader & 64) === 64) {
         // is definition message
         // startIndex + 1 is reserved
 

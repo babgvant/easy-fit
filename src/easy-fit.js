@@ -52,6 +52,9 @@ export default class EasyFit {
         }
       }
     }
+
+    const protocolVersion = blob[1];
+    const profileVersion = blob[2] + (blob[3] << 8);
     const dataLength = blob[4] + (blob[5] << 8) + (blob[6] << 16) + (blob[7] << 24);
     const crcStart = dataLength + headerLength;
     const crcFile = blob[crcStart] + (blob[crcStart + 1] << 8);
@@ -82,6 +85,9 @@ export default class EasyFit {
     const isCascadeNeeded = isModeCascade || this.options.mode === 'both';
 
     let startDate;
+    
+    fitObj.protocolVersion = protocolVersion;
+    fitObj.profileVersion = profileVersion;
 
     while (loopIndex < crcStart) {
       const { nextIndex,
