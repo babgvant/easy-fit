@@ -51,6 +51,10 @@ function formatByType(data, type, scale, offset) {
             timestamp = data;
             lastTimeOffset = (timestamp & CompressedTimeMask);
             return new Date((data * 1000) + 631065600000);
+        case 'left_right_balance':
+            return { 'right': data & 127, 'left' : 100 - (data & 127) };
+        case 'left_right_balance_100':
+            return { 'right': (data & 16383) / 100, 'left' : 100 - ((data & 16383) / 100) };
         case 'sint32':
         case 'sint16':
             return data * FIT.scConst;
@@ -81,6 +85,7 @@ function isInvalidValue(data, type) {
         case 'sint16':
             retVal = data === 0x7FFF;
             break;
+        case 'left_right_balance_100':
         case 'uint16': 
             retVal = data === 0xFFFF;
             break;
@@ -108,6 +113,7 @@ function isInvalidValue(data, type) {
         case 'uint32z': 
             retVal = data === 0x000000;
             break;
+        case 'left_right_balance':
         case 'byte': 
             retVal = data === 0xFF;
             break;
