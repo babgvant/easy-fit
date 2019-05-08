@@ -221,8 +221,8 @@ export function readRecord(blob, messageTypes, developerFields, startIndex, opti
 
             mTypeDef.fieldDefs.push(fDef);
         }
-        //bryton fit doesn't do this?
-        if(developerFields.length > 0){
+        
+        if(hasDeveloperData){
             for (let i = 0; i < numberOfDeveloperDataFields; i++) {
                 const fDefIndex = startIndex + 6 + (numberOfFields * 3) + 1 + (i * 3);
 
