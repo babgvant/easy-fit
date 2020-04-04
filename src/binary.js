@@ -16,6 +16,8 @@ var lastTimeOffset = 0;
 const CompressedTimeMask = 31;
 const CompressedLocalMesgNumMask = 0x60;
 const CompressedHeaderMask = 0x80;
+const GarminTimeOffset = 631065600000;
+let monitoring_timestamp = 0;
 
 function readData(blob, fDef, startIndex) {
     if (fDef.endianAbility === true) {
@@ -50,7 +52,7 @@ function formatByType(data, type, scale, offset) {
         case 'date_time': 
             timestamp = data;
             lastTimeOffset = (timestamp & CompressedTimeMask);
-            return new Date((data * 1000) + 631065600000);
+            return new Date((data * 1000) + GarminTimeOffset);
         case 'left_right_balance':
             return { 'right': data & 127, 'left' : 100 - (data & 127) };
         case 'left_right_balance_100':
@@ -303,6 +305,19 @@ export function readRecord(blob, messageTypes, developerFields, startIndex, opti
     if (message.name === 'field_description') {
         developerFields[fields.developer_data_index] = developerFields[fields.developer_data_index] || [];
         developerFields[fields.developer_data_index][fields.field_definition_number] = fields;
+    }
+
+    if (message.name === 'monitoring') {
+        //we need to keep the raw timestamp value so we can calculate subsequent timestamp16 fields
+        if(fields.timestamp){
+            monitoring_timestamp = fields.timestamp;
+            fields.timestamp = new Date(fields.timestamp * 1000 + GarminTimeOffset);
+        }
+        if(fields.timestamp16 && !fields.timestamp){
+            monitoring_timestamp += ( fields.timestamp16 - ( monitoring_timestamp & 0xFFFF ) ) & 0xFFFF;
+            //fields.timestamp = monitoring_timestamp;
+            fields.timestamp = new Date(monitoring_timestamp * 1000 + GarminTimeOffset);
+        }
     }
 
     const result = {

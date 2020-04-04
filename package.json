@@ -63,7 +63,11 @@
     "example-output": "node_modules/gulp/bin/gulp.js; node examples/example.js examples/example.fit > examples/output.json",
     "example": "node_modules/gulp/bin/gulp.js; node examples/example.js examples/example.fit",
     "test": "node_modules/gulp/bin/gulp.js;",
-    "build": "node_modules/gulp/bin/gulp.js babel"
+    "build": "node_modules/gulp/bin/gulp.js babel",
+    "preinstall": "npx npm-force-resolutions"
+  },
+  "resolutions": {
+    "graceful-fs": "4.2.3"
   },
   "version": "0.1.0"
 }

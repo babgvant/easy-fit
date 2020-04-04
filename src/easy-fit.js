@@ -72,7 +72,12 @@ export default class EasyFit {
     const sessions = [];
     const laps = [];
     const records = [];
-    const events = [];
+    const events = [];    
+    const devices = [];
+    const monitors = [];
+    const stress = [];
+    const definitions = [];
+    const file_ids = [];
 
     let tempLaps = [];
     let tempRecords = [];
@@ -124,6 +129,28 @@ export default class EasyFit {
             tempRecords.push(message);
           }
           break;
+        case 'device_info':
+          devices.push(message);
+          break;
+        case 'file_id':
+          if(message){
+            file_ids.push(message);
+          }
+          break;
+        case 'definition':
+          if(message){
+            definitions.push(message);
+          }
+          break;
+        case 'monitoring':
+          monitors.push(message);
+          break;
+        case 'stress_level':
+          stress.push(message);
+          break;
+        case 'software':
+          fitObj.software = message;
+          break;
         default:
           if (messageType !== '') {
             fitObj[messageType] = message;
@@ -141,6 +168,10 @@ export default class EasyFit {
       fitObj.laps = laps;
       fitObj.records = records;
       fitObj.events = events;
+      fitObj.devices = devices;
+      fitObj.monitors = monitors;
+      fitObj.stress = stress;
+      fitObj.file_ids = file_ids;
     }
 
     callback(null, fitObj);
