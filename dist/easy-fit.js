@@ -94,6 +94,7 @@ var EasyFit = function () {
       var stress = [];
       var definitions = [];
       var file_ids = [];
+      var monitor_info = [];
 
       var tempLaps = [];
       var tempRecords = [];
@@ -163,6 +164,9 @@ var EasyFit = function () {
           case 'monitoring':
             monitors.push(message);
             break;
+          case 'monitoring_info':
+            monitor_info.push(message);
+            break;
           case 'stress_level':
             stress.push(message);
             break;
@@ -190,6 +194,7 @@ var EasyFit = function () {
         fitObj.monitors = monitors;
         fitObj.stress = stress;
         fitObj.file_ids = file_ids;
+        fitObj.monitor_info = monitor_info;
       }
 
       callback(null, fitObj);

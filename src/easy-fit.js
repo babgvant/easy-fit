@@ -78,6 +78,7 @@ export default class EasyFit {
     const stress = [];
     const definitions = [];
     const file_ids = [];
+    const monitor_info = [];
 
     let tempLaps = [];
     let tempRecords = [];
@@ -145,6 +146,9 @@ export default class EasyFit {
         case 'monitoring':
           monitors.push(message);
           break;
+        case 'monitoring_info':
+          monitor_info.push(message);
+          break;
         case 'stress_level':
           stress.push(message);
           break;
@@ -172,6 +176,7 @@ export default class EasyFit {
       fitObj.monitors = monitors;
       fitObj.stress = stress;
       fitObj.file_ids = file_ids;
+      fitObj.monitor_info = monitor_info;
     }
 
     callback(null, fitObj);
