@@ -645,10 +645,9 @@ var FIT = exports.FIT = {
       253: { field: 'timestamp', type: 'uint32', scale: null, offset: 0, units: '' },
       0: { field: 'device_index', type: 'device_index', scale: null, offset: 0, units: '' },
       1: { field: 'calories', type: 'uint16', scale: null, offset: 0, units: 'kcal' },
-      2: { field: 'distance', type: 'float32', scale: null, offset: 0, units: 'm' },
+      2: { field: 'distance', type: 'uint32', scale: 100, offset: 0, units: 'm' },
       3: { field: 'cycles', type: 'float32', scale: null, offset: 0, units: 'cycles' },
       4: { field: 'active_time', type: 'float32', scale: null, offset: 0, units: 's' },
-      5: { field: 'activity_type', type: 'activity_type', scale: null, offset: 0, units: '' },
       6: { field: 'activity_subtype', type: 'activity_subtype', scale: null, offset: 0, units: '' },
       7: { field: 'activity_level', type: 'activity_level', scale: null, offset: 0, units: 's' },
       8: { field: 'distance16', type: 'uint16', scale: null, offset: 0, units: 'm' },
@@ -660,15 +659,23 @@ var FIT = exports.FIT = {
       15: { field: 'temperature_max', type: 'float32', scale: null, offset: 0, units: 'C' },
       16: { field: 'activity_time', type: 'int32', scale: null, offset: 0, units: '' },
       19: { field: 'active_calories', type: 'uint16', scale: null, offset: 0, units: 'kcal' },
-      24: { field: 'current_activity_type_intensity', type: 'uint8', scale: null, offset: 0, units: '' },
-      25: { field: 'timestamp_min8', type: 'uint8z', scale: null, offset: 0, units: '' },
-      26: { field: 'timestamp16', type: 'uint16z', scale: null, offset: 0, units: '' },
+      24: {
+        field: 'current_activity_type_intensity',
+        type: 'uint8',
+        scale: null,
+        offset: 0,
+        units: '',
+        components: [{ field_no: 5, field: 'activity_type', type: 'activity_type', bits: 5, scale: null, offset: 0, units: '' }, { field_no: 28, field: 'intensity', type: 'uint8', bits: 3, scale: null, offset: 0, units: '' }]
+      },
+      25: { field: 'timestamp_min8', type: 'uint8', scale: null, offset: 0, units: '' },
+      26: { field: 'timestamp16', type: 'uint16', scale: null, offset: 0, units: '' },
       27: { field: 'heart_rate', type: 'uint8', scale: null, offset: 0, units: 'bpm' },
-      28: { field: 'intensity', type: 'uint8', scale: null, offset: 0, units: '' },
       29: { field: 'duration_min', type: 'uint16', scale: null, offset: 0, units: '' },
       30: { field: 'duration', type: 'uint32', scale: null, offset: 0, units: '' },
       31: { field: 'ascent', type: 'float32', scale: null, offset: 0, units: 'm' },
-      32: { field: 'descent', type: 'float32', scale: null, offset: 0, units: 'm' }
+      32: { field: 'descent', type: 'float32', scale: null, offset: 0, units: 'm' },
+      33: { field: 'moderate_activity_minutes', type: 'uint16', scale: null, offset: 0, units: '' },
+      34: { field: 'vigorous_activity_inutes', type: 'uint16', scale: null, offset: 0, units: '' }
     },
     103: {
       name: 'monitoring_info',
@@ -678,6 +685,11 @@ var FIT = exports.FIT = {
       3: { field: 'cycles_to_distance', type: 'float32', scale: null, offset: 0, units: 'cycles' },
       4: { field: 'cycles_to_calories', type: 'float32', scale: null, offset: 0, units: 'kcal' },
       5: { field: 'resting_metabolic_rate', type: 'uint16', scale: null, offset: 0, units: '' }
+    },
+    108: {
+      name: 'o_hr_settings',
+      253: { field: 'timestamp', type: 'date_time', scale: null, offset: 0, units: '' },
+      0: { field: 'enabled', type: 'byte', scale: null, offset: 0, units: '' }
     },
     206: {
       name: 'field_description',
@@ -703,7 +715,21 @@ var FIT = exports.FIT = {
       2: { field: 'field_two', type: 'sint8', scale: null, offset: 0, units: '' },
       3: { field: 'body_battery', type: 'uint8', scale: null, offset: 0, units: '' },
       4: { field: 'field_four', type: 'uint8', scale: null, offset: 0, units: '' }
-    }
+    },
+    285: {
+      name: 'jump'
+    },
+    317: {
+      name: 'climb_pro',
+      253: { field: 'timestamp', type: 'date_time', scale: null, offset: 0, units: 's' },
+      0: { field: 'position_lat', type: 'sint32', scale: null, offset: 0, units: 'semicircles' },
+      1: { field: 'position_long', type: 'sint32', scale: null, offset: 0, units: 'semicircles' },
+      2: { field: 'climb_pro_event', type: 'climb_pro_event', scale: null, offset: 0, units: '' },
+      3: { field: 'climb_number', type: 'uint16', scale: null, offset: 0, units: '' },
+      4: { field: 'climb_category', type: 'uint8', scale: null, offset: 0, units: '' },
+      5: { field: 'current_dist', type: 'uint32', scale: 100, offset: 0, units: 'm' },
+      
+    },
   },
   types: {
     file: {
@@ -1395,6 +1421,11 @@ var FIT = exports.FIT = {
       100: 'level_max',
       127: 'level',
       128: 'athlete'
+    },
+    climb_pro_event: {
+      0: 'approach',
+      1: 'start',
+      2: 'complete'
     },
     hr_zone_calc: {
       0: 'custom',

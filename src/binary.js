@@ -286,16 +286,51 @@ export function readRecord(blob, messageTypes, developerFields, startIndex, opti
                 // Skip format of data if developer field
                 fields[fDef.name] = data;
             } else {
-                const { field, type, scale, offset } = message.getAttributes(fDef.fDefNo);
+                const mDef = message.getAttributes(fDef.fDefNo);
 
-                if (field !== 'unknown' && field !== '' && field !== undefined) {
-                    fields[field] = applyOptions(formatByType(data, type, scale, offset), field, options);
+                if (mDef.field !== 'unknown' && mDef.field !== '' && mDef.field !== undefined) {
+                    fields[mDef.field] = applyOptions(formatByType(data, mDef.type, mDef.scale, mDef.offset), mDef.field, options);
+                
+                    if(mDef.components){                          
+                        let tdata = data;      
+                        let offset = 0;
+                        for(let j = 0; j < mDef.components.length; j++){
+                            const cDef = mDef.components[j];
+                            let value = 0;
+                            let bitsInData = 0;
+                            let bitsInValue = 0;
+                            let mask = 0;
+                            while (bitsInValue < cDef.bits)
+                            {
+                                tdata >>= offset;
+                                bitsInData = fDef.size * 8 - offset;
+                                offset -= fDef.size * 8;
+                                if(bitsInData > 0){
+                                    // We have reached desired data, pull off bits until we
+                                    // get enough
+                                    offset = 0;
+                                    // If there are more bits available in data than we need
+                                    // just capture those we need
+                                    if (bitsInData > (cDef.bits - bitsInValue))
+                                    {
+                                        bitsInData = cDef.bits - bitsInValue;
+                                    }
+                                    mask = (1 << bitsInData) - 1;
+                                    value |= ((tdata & mask) << bitsInValue);
+                                    bitsInValue += bitsInData;
+                                }
+                            }
+                            
+                            fields[cDef.field] = formatByType(value, cDef.type, cDef.scale, cDef.offset);
+                            offset += cDef.bits;
+                        }
+                    }
                 }
             }
 
             if (message.name === 'record' && options.elapsedRecordField) {
                 fields.elapsed_time = (fields.timestamp - startDate) / 1000;
-            }
+            }            
         }
 
         readDataFromIndex += fDef.size;

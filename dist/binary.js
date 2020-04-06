@@ -302,14 +302,43 @@ function readRecord(blob, messageTypes, developerFields, startIndex, options, st
                 // Skip format of data if developer field
                 fields[_fDef2.name] = data;
             } else {
-                var _message$getAttribute2 = message.getAttributes(_fDef2.fDefNo),
-                    field = _message$getAttribute2.field,
-                    type = _message$getAttribute2.type,
-                    scale = _message$getAttribute2.scale,
-                    offset = _message$getAttribute2.offset;
+                var mDef = message.getAttributes(_fDef2.fDefNo);
 
-                if (field !== 'unknown' && field !== '' && field !== undefined) {
-                    fields[field] = applyOptions(formatByType(data, type, scale, offset), field, options);
+                if (mDef.field !== 'unknown' && mDef.field !== '' && mDef.field !== undefined) {
+                    fields[mDef.field] = applyOptions(formatByType(data, mDef.type, mDef.scale, mDef.offset), mDef.field, options);
+
+                    if (mDef.components) {
+                        var tdata = data;
+                        var offset = 0;
+                        for (var j = 0; j < mDef.components.length; j++) {
+                            var cDef = mDef.components[j];
+                            var value = 0;
+                            var bitsInData = 0;
+                            var bitsInValue = 0;
+                            var mask = 0;
+                            while (bitsInValue < cDef.bits) {
+                                tdata >>= offset;
+                                bitsInData = _fDef2.size * 8 - offset;
+                                offset -= _fDef2.size * 8;
+                                if (bitsInData > 0) {
+                                    // We have reached desired data, pull off bits until we
+                                    // get enough
+                                    offset = 0;
+                                    // If there are more bits available in data than we need
+                                    // just capture those we need
+                                    if (bitsInData > cDef.bits - bitsInValue) {
+                                        bitsInData = cDef.bits - bitsInValue;
+                                    }
+                                    mask = (1 << bitsInData) - 1;
+                                    value |= (tdata & mask) << bitsInValue;
+                                    bitsInValue += bitsInData;
+                                }
+                            }
+
+                            fields[cDef.field] = formatByType(value, cDef.type, cDef.scale, cDef.offset);
+                            offset += cDef.bits;
+                        }
+                    }
                 }
             }
 

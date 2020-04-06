@@ -206,12 +206,48 @@ export const FIT = {
       10: { field: 'total_cycles', type: 'uint32', scale: null, offset: 0, units: 'cycles' },
       11: { field: 'total_calories', type: 'uint16', scale: null, offset: 0, units: 'kcal' },
       13: { field: 'total_fat_calories', type: 'uint16', scale: null, offset: 0, units: 'kcal' },
-      14: { field: 'avg_speed', type: 'uint16', scale: 1000, offset: 0, units: 'm/s' },
-      15: { field: 'max_speed', type: 'uint16', scale: 1000, offset: 0, units: 'm/s' },
+      14: { 
+        field: 'avg_speed', 
+        type: 'uint16', 
+        scale: 1000, 
+        offset: 0, 
+        units: 'm/s' ,
+        components: [
+          { field_num: 124, bits: 16, field: 'enhanced_avg_speed', type: 'uint32', scale: 1000, offset: 0, units: 'm/s' },
+        ]
+      },
+      15: { 
+        field: 'max_speed', 
+        type: 'uint16', 
+        scale: 1000, 
+        offset: 0, 
+        units: 'm/s',
+        components: [
+          { field_num: 125, bits: 16, field: 'enhanced_max_speed', type: 'uint32', scale: 1000, offset: 0, units: 'm/s' },          
+        ]
+      },
       16: { field: 'avg_heart_rate', type: 'uint8', scale: null, offset: 0, units: 'bpm' },
       17: { field: 'max_heart_rate', type: 'uint8', scale: null, offset: 0, units: 'bpm' },
-      18: { field: 'avg_cadence', type: 'uint8', scale: null, offset: 0, units: 'rpm' },
-      19: { field: 'max_cadence', type: 'uint8', scale: null, offset: 0, units: 'rpm' },
+      18: { 
+        field: 'avg_cadence', 
+        type: 'uint8', 
+        scale: null, 
+        offset: 0, 
+        units: 'rpm' ,
+        subfields: [
+
+        ]
+      },
+      19: { 
+        field: 'max_cadence', 
+        type: 'uint8', 
+        scale: null, 
+        offset: 0, 
+        units: 'rpm' ,
+        subfields: [
+          
+        ]
+      },
       20: { field: 'avg_power', type: 'uint16', scale: null, offset: 0, units: 'watts' },
       21: { field: 'max_power', type: 'uint16', scale: null, offset: 0, units: 'watts' },
       22: { field: 'total_ascent', type: 'uint16', scale: null, offset: 0, units: 'm' },
@@ -237,8 +273,26 @@ export const FIT = {
       46: { field: 'pool_length_unit', type: 'display_measure', scale: null, offset: 0, units: '' },
       47: { field: 'num_active_lengths', type: 'uint16', scale: null, offset: 0, units: 'lengths' },
       48: { field: 'total_work', type: 'uint32', scale: null, offset: 0, units: 'J' },
-      49: { field: 'avg_altitude', type: 'uint16', scale: 5, offset: 500, units: 'm' },
-      50: { field: 'max_altitude', type: 'uint16', scale: 5, offset: 500, units: 'm' },
+      49: { 
+        field: 'avg_altitude', 
+        type: 'uint16', 
+        scale: 5, 
+        offset: 500, 
+        units: 'm' ,
+        components: [
+          { field_num: 126, bits: 16, field: 'enhanced_avg_altitude', type: 'uint32', scale: 5, offset: 500, units: 'm' },
+        ]
+      },
+      50: { 
+        field: 'max_altitude', 
+        type: 'uint16', 
+        scale: 5, 
+        offset: 500, 
+        units: 'm' ,
+        components: [
+          { field_num: 128, bits: 16, field: 'enhanced_max_altitude', type: 'uint32', scale: 5, offset: 500, units: 'm' },
+        ]
+      },
       51: { field: 'gps_accuracy', type: 'uint8', scale: null, offset: 0, units: 'm' },
       52: { field: 'avg_grade', type: 'sint16', scale: 100, offset: 0, units: '%' },
       53: { field: 'avg_pos_grade', type: 'sint16', scale: 100, offset: 0, units: '%' },
@@ -259,7 +313,16 @@ export const FIT = {
       68: { field: 'time_in_power_zone', type: 'uint32', scale: 1000, offset: 0, units: 's' },
       69: { field: 'avg_lap_time', type: 'uint32', scale: 1000, offset: 0, units: 's' },
       70: { field: 'best_lap_index', type: 'uint16', scale: null, offset: 0, units: '' },
-      71: { field: 'min_altitude', type: 'uint16', scale: 5, offset: 500, units: 'm' },
+      71: { 
+        field: 'min_altitude', 
+        type: 'uint16', 
+        scale: 5, 
+        offset: 500, 
+        units: 'm',
+        components: [
+          { field_num: 127, bits: 16, field: 'enhanced_min_altitude', type: 'uint32', scale: 5, offset: 500, units: 'm' },
+        ] 
+      },
       82: { field: 'player_score', type: 'uint16', scale: null, offset: 0, units: '' },
       83: { field: 'opponent_score', type: 'uint16', scale: null, offset: 0, units: '' },
       84: { field: 'opponent_name', type: 'string', scale: null, offset: 0, units: '' },
@@ -323,8 +386,15 @@ export const FIT = {
       10: { field: 'total_cycles', type: 'uint32', scale: null, offset: 0, units: 'cycles' },
       11: { field: 'total_calories', type: 'uint16', scale: null, offset: 0, units: 'kcal' },
       12: { field: 'total_fat_calories', type: 'uint16', scale: null, offset: 0, units: 'kcal' },
-      13: { field: 'avg_speed', type: 'uint16', scale: 1000, offset: 0, units: 'm/s' },
-      14: { field: 'max_speed', type: 'uint16', scale: 1000, offset: 0, units: 'm/s' },
+      13: { field: 'avg_speed', type: 'uint16', scale: 1000, offset: 0, units: 'm/s',
+        components: [
+          { field_num: 110, bits: 16, field: 'enhanced_avg_speed', type: 'uint32', scale: 1000, offset: 0, units: 'm/s' },         
+        ] 
+      },
+      14: { field: 'max_speed', type: 'uint16', scale: 1000, offset: 0, units: 'm/s',
+        components: [
+          { field_num: 111, bits: 16, field: 'enhanced_max_speed', type: 'uint32', scale: 1000, offset: 0, units: 'm/s' },          
+        ] },
       15: { field: 'avg_heart_rate', type: 'uint8', scale: null, offset: 0, units: 'bpm' },
       16: { field: 'max_heart_rate', type: 'uint8', scale: null, offset: 0, units: 'bpm' },
       17: { field: 'avg_cadence', type: 'uint8', scale: null, offset: 0, units: 'rpm' },
@@ -346,8 +416,14 @@ export const FIT = {
       39: { field: 'sub_sport', type: 'sub_sport', scale: null, offset: 0, units: '' },
       40: { field: 'num_active_lengths', type: 'uint16', scale: null, offset: 0, units: 'lengths' },
       41: { field: 'total_work', type: 'uint32', scale: null, offset: 0, units: 'J' },
-      42: { field: 'avg_altitude', type: 'uint16', scale: 5, offset: 500, units: 'm' },
-      43: { field: 'max_altitude', type: 'uint16', scale: 5, offset: 500, units: 'm' },
+      42: { field: 'avg_altitude', type: 'uint16', scale: 5, offset: 500, units: 'm',
+      components: [
+        { field_num: 112, bits: 16, field: 'enhanced_avg_altitude', type: 'uint32', scale: 5, offset: 500, units: 'm' },      
+      ] },
+      43: { field: 'max_altitude', type: 'uint16', scale: 5, offset: 500, units: 'm',
+      components: [
+        { field_num: 114, bits: 16, field: 'enhanced_max_altitude', type: 'uint32', scale: 5, offset: 500, units: 'm' },      
+      ] },
       44: { field: 'gps_accuracy', type: 'uint8', scale: null, offset: 0, units: 'm' },
       45: { field: 'avg_grade', type: 'sint16', scale: 100, offset: 0, units: '%' },
       46: { field: 'avg_pos_grade', type: 'sint16', scale: 100, offset: 0, units: '%' },
@@ -366,7 +442,10 @@ export const FIT = {
       59: { field: 'time_in_cadence_zone', type: 'uint32', scale: 1000, offset: 0, units: 's' },
       60: { field: 'time_in_power_zone', type: 'uint32', scale: 1000, offset: 0, units: 's' },
       61: { field: 'repetition_num', type: 'uint16', scale: null, offset: 0, units: '' },
-      62: { field: 'min_altitude', type: 'uint16', scale: 5, offset: 500, units: 'm' },
+      62: { field: 'min_altitude', type: 'uint16', scale: 5, offset: 500, units: 'm',
+      components: [
+        { field_num: 113, bits: 16, field: 'enhanced_min_altitude', type: 'uint32', scale: 5, offset: 500, units: 'm' },        
+      ] },
       63: { field: 'min_heart_rate', type: 'uint8', scale: null, offset: 0, units: 'bpm' },
       71: { field: 'wkt_step_index', type: 'message_index', scale: null, offset: 0, units: '' },
       74: { field: 'opponent_score', type: 'uint16', scale: null, offset: 0, units: '' },
@@ -416,22 +495,38 @@ export const FIT = {
       253: { field: 'timestamp', type: 'date_time', scale: null, offset: 0, units: 's' },
       0: { field: 'position_lat', type: 'sint32', scale: null, offset: 0, units: 'semicircles' },
       1: { field: 'position_long', type: 'sint32', scale: null, offset: 0, units: 'semicircles' },
-      2: { field: 'altitude', type: 'uint16', scale: 5, offset: -500, units: 'm' },
+      2: { field: 'altitude', type: 'uint16', scale: 5, offset: -500, units: 'm',
+      components: [
+        { field_num: 78, bits: 16, field: 'enhanced_altitude', type: 'uint32', scale: 5, offset: 500, units: 'm' },
+      ] },
       3: { field: 'heart_rate', type: 'uint8', scale: null, offset: 0, units: 'bpm' },
       4: { field: 'cadence', type: 'uint8', scale: null, offset: 0, units: 'rpm' },
       5: { field: 'distance', type: 'uint32', scale: 100, offset: 0, units: 'm' },
-      6: { field: 'speed', type: 'uint16', scale: 1000, offset: 0, units: 'm/s' },
+      6: { field: 'speed', type: 'uint16', scale: 1000, offset: 0, units: 'm/s',
+      components: [
+        { field_num: 73, bits: 16, field: 'enhanced_speed', type: 'uint32', scale: 1000, offset: 0, units: 'm/s' },
+      ]  },
       7: { field: 'power', type: 'uint16', scale: null, offset: 0, units: 'watts' },
-      8: { field: 'compressed_speed_distance', type: 'byte', scale: '100,16', offset: 0, units: 'm/s,m' },
+      8: { field: 'compressed_speed_distance', type: 'byte', scale: '100,16', offset: 0, units: 'm/s,m',
+      components: [
+        { field_num: 6, bits: 12, field: 'speed', type: 'uint16', scale: 1000, offset: 0, units: 'm/s'},
+        { field_num: 5, bits: 12, field: 'distance', type: 'uint32', scale: 100, offset: 0, units: 'm' },
+      ]  },
       9: { field: 'grade', type: 'sint16', scale: 100, offset: 0, units: '%' },
       10: { field: 'resistance', type: 'uint8', scale: null, offset: 0, units: '' },
       11: { field: 'time_from_course', type: 'sint32', scale: 1000, offset: 0, units: 's' },
       12: { field: 'cycle_length', type: 'uint8', scale: 100, offset: 0, units: 'm' },
       13: { field: 'temperature', type: 'sint8', scale: null, offset: 0, units: 'C' },
       17: { field: 'speed_1s', type: 'uint8', scale: 16, offset: 0, units: 'm/s' },
-      18: { field: 'cycles', type: 'uint8', scale: null, offset: 0, units: 'cycles' },
+      18: { field: 'cycles', type: 'uint8', scale: null, offset: 0, units: 'cycles',
+      components: [
+        { field_num: 19, bits: 8, field: 'total_cycles', type: 'uint32', scale: null, offset: 0, units: 'cycles' },
+      ] },
       19: { field: 'total_cycles', type: 'uint32', scale: null, offset: 0, units: 'cycles' },
-      28: { field: 'compressed_accumulated_power', type: 'uint16', scale: null, offset: 0, units: 'watts' },
+      28: { field: 'compressed_accumulated_power', type: 'uint16', scale: null, offset: 0, units: 'watts',
+      components: [
+        { field_num: 29, bits: 16, field: 'accumulated_power', type: 'uint32', scale: null, offset: 0, units: 'watts' },
+      ] },
       29: { field: 'accumulated_power', type: 'uint32', scale: null, offset: 0, units: 'watts' },
       30: { field: 'left_right_balance', type: 'left_right_balance', scale: null, offset: 0, units: '' },
       31: { field: 'gps_accuracy', type: 'uint8', scale: null, offset: 0, units: 'm' },
@@ -475,7 +570,11 @@ export const FIT = {
       253: { field: 'timestamp', type: 'date_time', scale: null, offset: '', units: 's' },
       0: { field: 'event', type: 'event', scale: null, offset: '', units: '' },
       1: { field: 'event_type', type: 'event_type', scale: null, offset: '', units: '' },
-      2: { field: 'data16', type: 'uint16', scale: null, offset: '', units: '' },
+      2: { field: 'data16', type: 'uint16', scale: null, offset: '', units: '',
+        components:[
+          {field_num: 3, bits: 16, field: 'data', type: 'uint32', scale: null, offset: '', units: '' },
+        ] 
+      },
       3: { field: 'data', type: 'uint32', scale: null, offset: '', units: '' },
       4: { field: 'event_group', type: 'uint8', scale: null, offset: '', units: '' },
       7: { field: 'score', type: 'uint16', scale: null, offset: '', units: '' },
@@ -641,7 +740,6 @@ export const FIT = {
       2: { field: 'distance', type: 'float32', scale: null, offset: 0, units: 'm' },
       3: { field: 'cycles', type: 'float32', scale: null, offset: 0, units: 'cycles' },
       4: { field: 'active_time', type: 'float32', scale: null, offset: 0, units: 's' },
-      5: { field: 'activity_type', type: 'activity_type', scale: null, offset: 0, units: '' },
       6: { field: 'activity_subtype', type: 'activity_subtype', scale: null, offset: 0, units: '' },
       7: { field: 'activity_level', type: 'activity_level', scale: null, offset: 0, units: 's' },
       8: { field: 'distance16', type: 'uint16', scale: null, offset: 0, units: 'm' },
@@ -653,11 +751,20 @@ export const FIT = {
       15: { field: 'temperature_max', type: 'float32', scale: null, offset: 0, units: 'C' },
       16: { field: 'activity_time', type: 'int32', scale: null, offset: 0, units: '' },
       19: { field: 'active_calories', type: 'uint16', scale: null, offset: 0, units: 'kcal' },
-      24: { field: 'current_activity_type_intensity', type: 'uint8', scale: null, offset: 0, units: '' },
+      24: { 
+        field: 'current_activity_type_intensity', 
+        type: 'uint8', 
+        scale: null, 
+        offset: 0, 
+        units: '', 
+        components: [
+          { field_no: 5, field: 'activity_type', type: 'activity_type', bits: 5, scale: null, offset: 0, units: '' },
+          { field_no: 28, field: 'intensity', type: 'uint8', bits: 3, scale: null, offset: 0, units: '' },
+        ]
+      },
       25: { field: 'timestamp_min8', type: 'uint8', scale: null, offset: 0, units: '' },
       26: { field: 'timestamp16', type: 'uint16', scale: null, offset: 0, units: '' },
       27: { field: 'heart_rate', type: 'uint8', scale: null, offset: 0, units: 'bpm' },
-      28: { field: 'intensity', type: 'uint8', scale: null, offset: 0, units: '' },
       29: { field: 'duration_min', type: 'uint16', scale: null, offset: 0, units: '' },
       30: { field: 'duration', type: 'uint32', scale: null, offset: 0, units: '' },
       31: { field: 'ascent', type: 'float32', scale: null, offset: 0, units: 'm' },
@@ -703,6 +810,32 @@ export const FIT = {
       2: { field: 'field_two', type: 'sint8', scale: null, offset: 0, units: '' },
       3: { field: 'body_battery', type: 'uint8', scale: null, offset: 0, units: '' },
       4: { field: 'field_four', type: 'uint8', scale: null, offset: 0, units: '' },
+    },
+    285: {
+      name: 'jump',
+      253: { field: 'timestamp', type: 'uint32', scale: null, offset: 0, units: '' },
+      0: { field: 'distance', type: 'uint32', scale: 100, offset: 0, units: 'm' },
+      1: { field: 'Height', type: 'float32', scale: null, offset: 0, units: 'm' },
+      2: { field: 'Rotations', type: 'uint8', scale: null, offset: 0, units: '' },
+      3: { field: 'HangTime', type: 'float32', scale: null, offset: 0, units: 's' },
+      4: { field: 'Score', type: 'float32', scale: null, offset: 0, units: '' },
+      5: { field: 'position_lat', type: 'sint32', scale: null, offset: 0, units: 'semicircles' },
+      6: { field: 'position_long', type: 'sint32', scale: null, offset: 0, units: 'semicircles' },
+      7: { field: 'speed', type: 'uint16', scale: 1000, offset: 0, units: 'm/s',
+      components: [
+        { field_num: 8, bits: 16, field: 'enhanced_speed', type: 'uint32', scale: 1000, offset: 0, units: 'm/s' },
+      ]  },
+      8: { field: 'enhanced_speed', type: 'uint32', scale: 1000, offset: 0, units: 'm/s' },
+    },
+    317: {
+      name: 'climb_pro',
+      253: { field: 'timestamp', type: 'date_time', scale: null, offset: 0, units: 's' },
+      0: { field: 'position_lat', type: 'sint32', scale: null, offset: 0, units: 'semicircles' },
+      1: { field: 'position_long', type: 'sint32', scale: null, offset: 0, units: 'semicircles' },
+      2: { field: 'climb_pro_event', type: 'climb_pro_event', scale: null, offset: 0, units: '' },
+      3: { field: 'climb_number', type: 'uint16', scale: null, offset: 0, units: '' },
+      4: { field: 'climb_category', type: 'uint8', scale: null, offset: 0, units: '' },
+      5: { field: 'current_dist', type: 'uint32', scale: 100, offset: 0, units: 'm' },      
     },
   },
   types: {
@@ -1395,6 +1528,11 @@ export const FIT = {
       100: 'level_max',
       127: 'level',
       128: 'athlete'
+    },
+    climb_pro_event: {
+      0: 'approach',
+      1: 'start',
+      2: 'complete'
     },
     hr_zone_calc: {
       0: 'custom',
