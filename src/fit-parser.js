@@ -1,9 +1,9 @@
 import { getArrayBuffer, calculateCRC, readRecord } from './binary';
 
-export default class EasyFit {
+export default class FitParser {
   constructor(options = {}) {
     this.options = {
-      force: options.force || true,
+      force: options.force != null ? options.force : true,
       speedUnit: options.speedUnit || 'm/s',
       lengthUnit: options.lengthUnit || 'm',
       temperatureUnit: options.temperatureUnit || 'celsius',
@@ -69,18 +69,29 @@ export default class EasyFit {
     }
 
     const fitObj = {};
+    fitObj.protocolVersion = protocolVersion;
+    fitObj.profileVersion = profileVersion;
+
     const sessions = [];
     const laps = [];
     const records = [];
-    const events = [];    
+    const events = [];
+    const hrv = [];
     const devices = [];
+    const applications = [];
+    const fieldDescriptions = [];
+    const dive_gases = [];
+    const course_points = [];
+    const sports = [];
     const monitors = [];
     const stress = [];
     const definitions = [];
     const file_ids = [];
     const monitor_info = [];
+    const lengths = [];
 
     let tempLaps = [];
+    let tempLengths = [];
     let tempRecords = [];
 
     let loopIndex = headerLength;
@@ -90,15 +101,16 @@ export default class EasyFit {
     const isModeCascade = this.options.mode === 'cascade';
     const isCascadeNeeded = isModeCascade || this.options.mode === 'both';
 
-    let startDate;
-    
+    let startDate, lastStopTimestamp;
+    let pausedTime = 0;
+
     fitObj.protocolVersion = protocolVersion;
     fitObj.profileVersion = profileVersion;
 
     while (loopIndex < crcStart) {
       const { nextIndex,
         messageType,
-        message } = readRecord(blob, messageTypes, developerFields, loopIndex, this.options, startDate);
+        message } = readRecord(blob, messageTypes, developerFields, loopIndex, this.options, startDate, pausedTime);
       loopIndex = nextIndex;
 
       switch (messageType) {
@@ -107,6 +119,8 @@ export default class EasyFit {
             message.records = tempRecords;
             tempRecords = [];
             tempLaps.push(message);
+            message.lengths = tempLengths;
+            tempLengths = [];
           }
           laps.push(message);
           break;
@@ -118,20 +132,52 @@ export default class EasyFit {
           sessions.push(message);
           break;
         case 'event':
+          if (message.event === 'timer') {
+            if (message.event_type === 'stop_all') {
+              lastStopTimestamp = message.timestamp;
+            } else if (message.event_type === 'start' && lastStopTimestamp) {
+              pausedTime += (message.timestamp - lastStopTimestamp) / 1000;
+            }
+          }
           events.push(message);
+          break;
+        case 'length':
+          if (isCascadeNeeded) {
+            tempLengths.push(message);
+          }
+          lengths.push(message);
+          break;
+        case 'hrv':
+          hrv.push(message);
           break;
         case 'record':
           if (!startDate) {
             startDate = message.timestamp;
             message.elapsed_time = 0;
+            message.timer_time = 0;
           }
           records.push(message);
           if (isCascadeNeeded) {
             tempRecords.push(message);
           }
           break;
+        case 'field_description':
+          fieldDescriptions.push(message);
+          break;
         case 'device_info':
           devices.push(message);
+          break;
+        case 'developer_data_id':
+          applications.push(message);
+          break;
+        case 'dive_gas':
+          dive_gases.push(message);
+          break;
+        case 'course_point':
+          course_points.push(message);
+          break;
+        case 'sport':
+          sports.push(message);
           break;
         case 'file_id':
           if(message){
@@ -164,22 +210,36 @@ export default class EasyFit {
     }
 
     if (isCascadeNeeded) {
+      fitObj.activity = fitObj.activity || {};
       fitObj.activity.sessions = sessions;
       fitObj.activity.events = events;
+      fitObj.activity.hrv = hrv;
+      fitObj.activity.device_infos = devices;
+      fitObj.activity.developer_data_ids = applications;
+      fitObj.activity.field_descriptions = fieldDescriptions;
+      fitObj.activity.sports = sports;
     }
     if (!isModeCascade) {
       fitObj.sessions = sessions;
       fitObj.laps = laps;
+      fitObj.lengths = lengths;
       fitObj.records = records;
       fitObj.events = events;
+      fitObj.device_infos = devices;
+      fitObj.developer_data_ids = applications;
+      fitObj.field_descriptions = fieldDescriptions;
+      fitObj.hrv = hrv;
+      fitObj.dive_gases = dive_gases;
+      fitObj.course_points = course_points;
+      fitObj.sports = sports;
       fitObj.devices = devices;
       fitObj.monitors = monitors;
       fitObj.stress = stress;
       fitObj.file_ids = file_ids;
       fitObj.monitor_info = monitor_info;
+      fitObj.definitions = definitions;
     }
 
     callback(null, fitObj);
   }
 }
-
