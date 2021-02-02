@@ -1,17 +1,17 @@
 {
   "author": {
-    "name": "pierremtb"
+    "name": "jimmykane"
   },
   "bugs": {
-    "url": "https://github.com/pierremtb/easy-fit/issues"
+    "url": "https://github.com/jimmykane/fit-parser"
   },
   "contributors": [
     {
-      "email": "pierrejacquier39@gmail.com",
-      "name": "Pierre Jacquier"
+      "email": "jimmykane9@gmail.com",
+      "name": "Dimitrios Kanellopoulos"
     }
   ],
-  "description": "Parse your .FIT files easily, directly from JS.",
+  "description": "Parse your .FIT files easily, directly from JS (Garmin, Polar, Suunto)",
   "devDependencies": {
     "@babel/core": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
@@ -37,7 +37,7 @@
   },
   "directories": {},
   "engine": "node >= 0.10.x",
-  "homepage": "https://github.com/pierremtb/easy-fit",
+  "homepage": "https://github.com/jimmykane/fit-parser",
   "keywords": [
     "fit",
     "ant",
@@ -45,19 +45,19 @@
     "parse"
   ],
   "license": "MIT",
-  "main": "dist/easy-fit.js",
+  "main": "dist/fit-parser.js",
   "maintainers": [
     {
-      "email": "pierrejacquier39@gmail.com",
-      "name": "Pierre Jacquier"
+      "email": "jimmykane9@gmail.com",
+      "name": "Dimitrios Kanellopoulos"
     }
   ],
-  "name": "easy-fit",
+  "name": "fit-file-parser",
   "optionalDependencies": {},
   "private": false,
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/pierremtb/easy-fit.git"
+    "url": "git+ssh://git@github.com/jimmykane/fit-parser.git"
   },
   "scripts": {
     "example-output": "node_modules/gulp/bin/gulp.js; node examples/example.js examples/example.fit > examples/output.json",
@@ -69,5 +69,8 @@
   "resolutions": {
     "graceful-fs": "4.2.3"
   },
-  "version": "0.1.0"
+  "version": "1.8.4",
+  "dependencies": {
+    "buffer": "^5.1.0"
+  }
 }

@@ -1,5 +1,6 @@
 import { FIT } from './fit';
 import { getFitMessage, getFitMessageBaseType } from './messages';
+import { Buffer } from 'buffer/';
 
 export function addEndian(littleEndian, bytes) {
     let result = 0;
@@ -19,19 +20,52 @@ const CompressedHeaderMask = 0x80;
 const GarminTimeOffset = 631065600000;
 let monitoring_timestamp = 0;
 
-function readData(blob, fDef, startIndex) {
+function readData(blob, fDef, startIndex, options) {
     if (fDef.endianAbility === true) {
         const temp = [];
         for (let i = 0; i < fDef.size; i++) {
             temp.push(blob[startIndex + i]);
         }
-        const uint32Rep = addEndian(fDef.littleEndian, temp);
 
-        if (fDef.type === 'sint32') {
-            return (uint32Rep >> 0);
+        var buffer = new Uint8Array(temp).buffer;
+        var dataView = new DataView(buffer);
+
+        try {
+            switch (fDef.type) {
+                case 'sint16':
+                    return dataView.getInt16(0, fDef.littleEndian);
+                case 'uint16':
+                case 'uint16z':
+                    return dataView.getUint16(0, fDef.littleEndian);
+                case 'sint32':
+                    return dataView.getInt32(0, fDef.littleEndian);
+                case 'uint32':
+                case 'uint32z':
+                    return dataView.getUint32(0, fDef.littleEndian);
+                case 'float32':
+                    return dataView.getFloat32(0, fDef.littleEndian);
+                case 'float64':
+                    return dataView.getFloat64(0, fDef.littleEndian);
+                case 'uint32_array':
+                    const array32 = [];
+                    for (let i = 0; i < fDef.size; i += 4) {
+                        array32.push(dataView.getUint32(i, fDef.littleEndian));
+                    }
+                    return array32;
+                case 'uint16_array':
+                    const array = [];
+                    for (let i = 0; i < fDef.size; i += 2) {
+                        array.push(dataView.getUint16(i, fDef.littleEndian));
+                    }
+                    return array;
+            }
+        }catch (e) {
+            if (!options.force){
+                throw e;
+            }
         }
 
-        return uint32Rep;
+        return addEndian(fDef.littleEndian, temp);
     }
 
     if (fDef.type === 'string') {
@@ -42,6 +76,14 @@ function readData(blob, fDef, startIndex) {
             }
         }
         return new Buffer(temp).toString('utf-8');
+    }
+
+    if (fDef.type === 'byte_array') {
+        const temp = [];
+        for (let i = 0; i < fDef.size; i++) {
+            temp.push(blob[startIndex + i]);
+        }
+        return temp;
     }
 
     return blob[startIndex];
@@ -58,79 +100,82 @@ function formatByType(data, type, scale, offset) {
         case 'left_right_balance_100':
             return { 'right': (data & 16383) / 100, 'left' : 100 - ((data & 16383) / 100) };
         case 'sint32':
-        case 'sint16':
             return data * FIT.scConst;
+        case 'uint8':
+        case 'sint16':
         case 'uint32':
         case 'uint16':
             return scale ? data / scale + offset : data;
+        case 'uint32_array':
+        case 'uint16_array':
+            return data.map(dataItem => scale ? dataItem / scale + offset : dataItem);
         default:
-            if (FIT.types[type]) {
+            if (!FIT.types[type]) {
+                return data;
+            }
+            // Quick check for a mask
+            var values = [];
+            for (var key in FIT.types[type]) {
+                if (FIT.types[type].hasOwnProperty(key)) {
+                    values.push(FIT.types[type][key])
+                }
+            }
+            if (values.indexOf('mask') === -1){
                 return FIT.types[type][data];
             }
-            return data;
+            var dataItem = {};
+            for (var key in FIT.types[type]) {
+                if (FIT.types[type].hasOwnProperty(key)) {
+                    if (FIT.types[type][key] === 'mask'){
+                        dataItem.value = data & key
+                    }else{
+                        dataItem[FIT.types[type][key]] = !!((data & key) >> 7) // Not sure if we need the >> 7 and casting to boolean but from all the masked props of fields so far this seems to be the case
+                    }
+                }
+            }
+            return dataItem;
     }
 }
 
 function isInvalidValue(data, type) {
-    let retVal = false;
-
     switch (type) {
-        case 'enum': 
-            retVal = data === 0xFF;
-            break;
-        case 'sint8': 
-            retVal = data === 0x7F;
-            break;
-        case 'uint8': 
-            retVal = data === 0xFF;
-            break;
+        case 'enum':
+            return data === 0xFF;
+        case 'sint8':
+            return data === 0x7F;
+        case 'uint8':
+            return data === 0xFF;
         case 'sint16':
-            retVal = data === 0x7FFF;
-            break;
-        case 'left_right_balance_100':
-        case 'uint16': 
-            retVal = data === 0xFFFF;
-            break;
-        case 'sint32': 
-            retVal = data === 0x7FFFFFFF;
-            break;
-        case 'uint32': 
-            retVal = data === 0xFFFFFFFF;
-            break;
-        case 'string': 
-            retVal = data === 0x00;
-            break;
-        case 'float32': 
-            retVal = data === 0xFFFFFFFF;
-            break;
-        case 'float64': 
-            retVal = data === 0xFFFFFFFFFFFFFFFF;
-            break;
-        case 'uint8z': 
-            retVal = data === 0x00;
-            break;
-        case 'uint16z': 
-            retVal = data === 0x0000;
-            break;
-        case 'uint32z': 
-            retVal = data === 0x000000;
-            break;
-        case 'left_right_balance':
-        case 'byte': 
-            retVal = data === 0xFF;
-            break;
-        case 'sint64': 
-            retVal = data === 0x7FFFFFFFFFFFFFFF;
-            break;
-        case 'uint64': 
-            retVal = data === 0xFFFFFFFFFFFFFFFF;
-            break;
-        case 'uint64z': 
-            retVal = data === 0x0000000000000000;
-            break;
+            return data === 0x7FFF;
+        case 'uint16':
+            return data === 0xFFFF;
+        case 'sint32':
+            return data === 0x7FFFFFFF;
+        case 'uint32':
+            return data === 0xFFFFFFFF;
+        case 'string':
+            return data === 0x00;
+        case 'float32':
+            return data === 0xFFFFFFFF;
+        case 'float64':
+            return data === 0xFFFFFFFFFFFFFFFF;
+        case 'uint8z':
+            return data === 0x00;
+        case 'uint16z':
+            return data === 0x0000;
+        case 'uint32z':
+            return data === 0x000000;
+        case 'byte':
+            return data === 0xFF;
+        case 'sint64':
+            return data === 0x7FFFFFFFFFFFFFFF;
+        case 'uint64':
+            return data === 0xFFFFFFFFFFFFFFFF;
+        case 'uint64z':
+            return data === 0x0000000000000000;
+        default:
+            return false;
     }
-
-    return retVal;
 }
 
 function convertTo(data, unitsList, speedUnit) {
@@ -178,11 +223,12 @@ function applyOptions(data, field, options) {
         case 'avg_temperature':
         case 'max_temperature':
             return convertTo(data, 'temperatureUnits', options.temperatureUnit);
-        default: return data;
+        default:
+            return data;
     }
 }
 
-export function readRecord(blob, messageTypes, developerFields, startIndex, options, startDate) {
+export function readRecord(blob, messageTypes, developerFields, startIndex, options, startDate, pausedTime) {
     const recordHeader = blob[startIndex];
     let localMessageType = recordHeader & 15;
 
@@ -229,31 +275,43 @@ export function readRecord(blob, messageTypes, developerFields, startIndex, opti
 
             mTypeDef.fieldDefs.push(fDef);
         }
-        
+
+        // numberOfDeveloperDataFields = 0 so it wont crash here and wont loop
         for (let i = 0; i < numberOfDeveloperDataFields; i++) {
-            const fDefIndex = startIndex + 6 + (numberOfFields * 3) + 1 + (i * 3);
+            // If we fail to parse then try catch
+            try {
+                const fDefIndex = startIndex + 6 + (numberOfFields * 3) + 1 + (i * 3);
 
-            const fieldNum = blob[fDefIndex];
-            const size = blob[fDefIndex + 1];
-            const devDataIndex = blob[fDefIndex + 2];
+                const fieldNum = blob[fDefIndex];
+                const size = blob[fDefIndex + 1];
+                const devDataIndex = blob[fDefIndex + 2];
 
-            const devDef = developerFields[devDataIndex][fieldNum];
+                const devDef = developerFields[devDataIndex][fieldNum];
 
-            const baseType = devDef.fit_base_type_id;
+                const baseType = devDef.fit_base_type_id;
 
-            const fDef = {
-                type: FIT.types.fit_base_type[baseType],
-                fDefNo: fieldNum,
-                size: size,
-                endianAbility: (baseType & 128) === 128,
-                littleEndian: lEnd,
-                baseTypeNo: (baseType & 15),
-                name: devDef.field_name,
-                dataType: getFitMessageBaseType(baseType & 15),
-                isDeveloperField: true,
-            };
+                const fDef = {
+                    type: FIT.types.fit_base_type[baseType],
+                    fDefNo: fieldNum,
+                    size: size,
+                    endianAbility: (baseType & 128) === 128,
+                    littleEndian: lEnd,
+                    baseTypeNo: (baseType & 15),
+                    name: devDef.field_name,
+                    dataType: getFitMessageBaseType(baseType & 15),
+                    scale: devDef.scale || 1,
+                    offset: devDef.offset || 0,
+                    developerDataIndex: devDataIndex,
+                    isDeveloperField: true,
+                };
 
-            mTypeDef.fieldDefs.push(fDef);
+                mTypeDef.fieldDefs.push(fDef);
+            }catch (e) {
+                if (options.force){
+                    continue;
+                }
+                throw e;
+            }
         }
        
         messageTypes[localMessageType] = mTypeDef;
@@ -279,12 +337,17 @@ export function readRecord(blob, messageTypes, developerFields, startIndex, opti
 
     for (let i = 0; i < messageType.fieldDefs.length; i++) {
         const fDef = messageType.fieldDefs[i];
-        const data = readData(blob, fDef, readDataFromIndex);
+        const data = readData(blob, fDef, readDataFromIndex, options);
 
         if (!isInvalidValue(data, fDef.type)) {
             if (fDef.isDeveloperField) {
-                // Skip format of data if developer field
-                fields[fDef.name] = data;
+
+                const field = fDef.name;
+                const type =  fDef.type;
+                const scale = fDef.scale;
+                const offset = fDef.offset;
+
+                fields[fDef.name] = applyOptions(formatByType(data, type, scale, offset), field, options);
             } else {
                 const mDef = message.getAttributes(fDef.fDefNo);
 
@@ -330,7 +393,8 @@ export function readRecord(blob, messageTypes, developerFields, startIndex, opti
 
             if (message.name === 'record' && options.elapsedRecordField) {
                 fields.elapsed_time = (fields.timestamp - startDate) / 1000;
-            }            
+                fields.timer_time = fields.elapsed_time - pausedTime;
+            }
         }
 
         readDataFromIndex += fDef.size;
@@ -384,13 +448,13 @@ export function calculateCRC(blob, start, end) {
 
     let crc = 0;
     for (let i = start; i < end; i++) {
-        const byte = blob[i];
+        const byteVal = blob[i];
         let tmp = crcTable[crc & 0xF];
         crc = (crc >> 4) & 0x0FFF;
-        crc = crc ^ tmp ^ crcTable[byte & 0xF];
+        crc = crc ^ tmp ^ crcTable[byteVal & 0xF];
         tmp = crcTable[crc & 0xF];
         crc = (crc >> 4) & 0x0FFF;
-        crc = crc ^ tmp ^ crcTable[(byte >> 4) & 0xF];
+        crc = crc ^ tmp ^ crcTable[(byteVal >> 4) & 0xF];
     }
 
     return crc;
